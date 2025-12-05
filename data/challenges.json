@@ -1,0 +1,28 @@
+{
+  "fitness": [
+    "Take a 10-minute walk",
+    "Do 20 squats",
+    "Stretch for 5 minutes",
+    "Do 15 push-ups (knees allowed)"
+  ],
+  "mindset": [
+    "Write 3 things you're grateful for",
+    "Spend 5 minutes meditating",
+    "List one small win from today"
+  ],
+  "productivity": [
+    "Clear your workspace for 5 minutes",
+    "Write your top 3 tasks for tomorrow",
+    "Turn off notifications for 1 hour and focus"
+  ],
+  "creativity": [
+    "Sketch something for 5 minutes",
+    "Write a 6-word story",
+    "Take a photo of something that inspires you"
+  ],
+  "learning": [
+    "Read one page of a book",
+    "Learn one new word and use it",
+    "Watch a 5-minute tutorial"
+  ]
+}
