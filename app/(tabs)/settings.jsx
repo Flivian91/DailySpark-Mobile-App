@@ -1,34 +1,31 @@
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import colors from "../../theme/colors";
 
 export default function Settings() {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <Text style={styles.title}>Settings</Text>
 
-      <View style={styles.itemList}>
-        <Text style={styles.item}>• Daily reminders (future)</Text>
-        <Text style={styles.item}>• Choose categories (future)</Text>
-        <Text style={styles.item}>• Clear history (future)</Text>
+      <View style={styles.box}>
+        <Text style={styles.item}>• Offline only — no data collected</Text>
+        <Text style={styles.item}>
+          • Change categories from data/challenges.json
+        </Text>
+        <Text style={styles.item}>• App is simple and private</Text>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
+  root: { flex: 1, padding: 16, backgroundColor: colors.light.background },
   title: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "800",
+    color: colors.light.text,
     marginBottom: 12,
   },
-  itemList: {
-    padding: 8,
-  },
-  item: {
-    fontSize: 16,
-    marginBottom: 6,
-  },
+  box: { padding: 12, backgroundColor: colors.light.card, borderRadius: 12 },
+  item: { marginBottom: 8, color: colors.light.text },
 });

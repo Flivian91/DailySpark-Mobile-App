@@ -1,38 +1,55 @@
-import { ScrollView, StyleSheet } from "react-native";
+import React from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
 import colors from "../theme/colors";
-import CategoryPill from "./CategoryPill";
 
 export default function CategorySelector({
-  selected,
-  onSelect,
   challenges = [],
+  selected = "All",
+  onSelect,
 }) {
-  const categories = [
+  // challenges is array of {id, category, text}
+  const cats = [
     "All",
-    ...new Set((challenges || []).map((c) => c?.category || "")),
-  ].filter(Boolean);
-
+    ...Array.from(
+      new Set((challenges || []).map((c) => c.category || "General"))
+    ),
+  ];
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
     >
-      {categories.map((cat) => (
-        <CategoryPill
-          key={cat}
-          label={cat}
-          active={selected === cat}
-          onPress={() => onSelect(cat)}
-        />
-      ))}
+      {cats.map((cat) => {
+        const active = cat === selected;
+        return (
+          <TouchableOpacity
+            key={cat}
+            style={[styles.pill, active && styles.pillActive]}
+            onPress={() => onSelect(cat)}
+          >
+            <Text style={[styles.pillText, active && styles.pillTextActive]}>
+              {cat}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  container: { paddingVertical: 10, paddingHorizontal: 2 },
+  pill: {
+    marginRight: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: colors.light.card,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
+  pillActive: { backgroundColor: colors.light.primary },
+  pillText: { color: colors.light.text },
+  pillTextActive: { color: "#fff", fontWeight: "700" },
 });

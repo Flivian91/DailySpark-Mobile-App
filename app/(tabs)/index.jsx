@@ -1,99 +1,160 @@
 import React, { useEffect, useState } from "react";
 import {
-  ScrollView,
+  FlatList,
   StyleSheet,
   Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import ChallengeCard from "../../components/ChallengeCard";
 import CategorySelector from "../../components/CategorySelector";
-import { getTodayKey, loadTodayChallenge, saveTodayChallenge } from "../../utils/storage";
-import challengesData from "../../data/challenges.json";
+import ChallengeCard from "../../components/ChallengeCard";
 import colors from "../../theme/colors";
+import {
+  getChallengeList,
+  getTodayKey,
+  loadHistory,
+  loadTodayChallenge,
+  markCompletedForToday,
+  saveTodayChallenge,
+} from "../../utils/storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Home() {
-  const [challenge, setChallenge] = useState(null);
+  const [today, setToday] = useState(null);
+  const [allChallenges, setAllChallenges] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    let mounted = true;
     const init = async () => {
-      const today = getTodayKey();
+      const list = getChallengeList();
+      setAllChallenges(list);
+
       const stored = await loadTodayChallenge();
-      if (mounted) {
-        if (stored && stored.date === today) {
-          setChallenge(stored.challenge);
-          return;
+      if (stored && stored.date === getTodayKey()) {
+        setToday(stored);
+      } else {
+        // pick random from all
+        const pool = list;
+        const pick = pool.length
+          ? pool[Math.floor(Math.random() * pool.length)]
+          : null;
+        if (pick) {
+          const obj = {
+            date: getTodayKey(),
+            challenge: pick,
+            completed: false,
+          };
+          await saveTodayChallenge(obj);
+          setToday(obj);
         }
-        const ch = pickRandomChallenge();
-        setChallenge(ch);
-        await saveTodayChallenge({ date: today, challenge: ch, completed: false });
       }
+
+      const h = await loadHistory();
+      setHistory(h || []);
     };
+
     init();
-    return () => { mounted = false; };
   }, []);
 
-  const pickRandomChallenge = (category) => {
-    const pool = category && category !== "All"
-      ? challengesData[category] || []
-      : Object.keys(challengesData).flatMap(k => challengesData[k] || []);
-    if (!pool.length) return null;
-    return pool[Math.floor(Math.random() * pool.length)];
-  };
+  // when generating another challenge (ensure completed = false)
+const onGenerateAnother = async () => {
+  const pool =
+    selectedCategory === "All"
+      ? allChallenges
+      : allChallenges.filter((c) => c.category === selectedCategory);
+  if (!pool.length) return;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  const obj = { date: getTodayKey(), challenge: pick, completed: false };
+  await saveTodayChallenge(obj); // saves with completed:false
+  setToday(obj);
+};
 
-  const onCategorySelect = (category) => {
-    setSelectedCategory(category);
-    const ch = pickRandomChallenge(category);
-    if (ch) setChallenge(ch);
-  };
+// when marking today's challenge completed
+const onMarkCompleted = async () => {
+  if (!today) return;
+  // markCompletedForToday updates TODAY_KEY and adds/updates history entry
+  const updated = await markCompletedForToday(true);
+  if (updated) {
+    setToday(updated);
+    // update local history state if you keep it
+    const h = await loadHistory();
+    setHistory(h || []);
+  }
+};
+
+  const filteredList =
+    selectedCategory === "All"
+      ? allChallenges
+      : allChallenges.filter((c) => c.category === selectedCategory);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Welcome to DailySpark</Text>
+    <SafeAreaView style={styles.root}>
+      <View style={styles.header}>
+        <Text style={styles.title}>DailySpark</Text>
+        <Text style={styles.subtitle}>Small sparks, big habits.</Text>
+      </View>
 
       <CategorySelector
+        challenges={allChallenges}
         selected={selectedCategory}
-        onSelect={onCategorySelect}
-        challenges={Object.keys(challengesData).flatMap(cat =>
-          challengesData[cat].map(text => ({ category: cat, text }))
-        )}
+        onSelect={(cat) => setSelectedCategory(cat)}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {challenge ? (
-          <ChallengeCard challenge={challenge} />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Today`s challenge</Text>
+        {today ? (
+          <ChallengeCard
+            challenge={today.challenge}
+            completed={today.completed}
+            onComplete={onMarkCompleted}
+          />
         ) : (
-          <Text style={styles.loading}>Loading challenge...</Text>
+          <Text style={styles.helper}>No challenge for today.</Text>
         )}
-      </ScrollView>
+
+        <View style={styles.row}>
+          <TouchableOpacity style={styles.smallBtn} onPress={onGenerateAnother}>
+            <Text style={styles.smallBtnText}>Generate Another</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          More {selectedCategory} challenges
+        </Text>
+        <FlatList
+          data={filteredList}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <ChallengeCard challenge={item} simple />}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          contentContainerStyle={{ paddingBottom: 120 }}
+        />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.light.background,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  header: {
-    fontSize: 26,
+  root: { flex: 1, padding: 16, backgroundColor: colors.light.background },
+  header: { marginBottom: 6 },
+  title: { fontSize: 28, fontWeight: "800", color: colors.light.text },
+  subtitle: { fontSize: 14, color: colors.light.textLight, marginTop: 2 },
+  section: { marginTop: 14 },
+  sectionTitle: {
+    fontSize: 16,
     fontWeight: "700",
     color: colors.light.text,
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  scrollContent: {
-    paddingBottom: 30,
+  helper: { color: colors.light.textLight },
+  row: { flexDirection: "row", marginTop: 12 },
+  smallBtn: {
+    backgroundColor: colors.light.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
   },
-  loading: {
-    fontSize: 18,
-    color: "#888",
-    marginTop: 50,
-    textAlign: "center",
-  },
+  smallBtnText: { color: "#fff", fontWeight: "700" },
 });
