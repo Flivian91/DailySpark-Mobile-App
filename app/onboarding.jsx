@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import colors from "../theme/colors";
 import typography from "../theme/typography";
 
@@ -9,23 +10,50 @@ export default function Onboarding() {
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../assets/images/LOGO.svg")}
-        style={styles.logo}
-        contentFit="cover"
-        transition={1000}
-      />
-      <Text style={styles.title}>Welcome to DailySpark</Text>
-      <Text style={styles.subtitle}>
-        Build habits, complete challenges, and track your streaks!
-      </Text>
+      {/* Logo */}
+      <Animated.View entering={FadeInDown.springify().delay(200)}>
+        <Image
+          source={require("../assets/images/LOGO.svg")}
+          style={styles.logo}
+          contentFit="contain"
+        />
+      </Animated.View>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => router.replace("/")}
+      {/* Hero Illustration */}
+      <Animated.View entering={FadeInUp.springify().delay(400)}>
+        <Image
+          source={require("../assets/images/hero2.avif")}
+          style={styles.hero}
+          contentFit="contain"
+        />
+      </Animated.View>
+
+      {/* Title */}
+      <Animated.Text
+        entering={FadeInUp.springify().delay(600)}
+        style={styles.title}
       >
-        <Text style={styles.buttonText}>Get Started</Text>
-      </TouchableOpacity>
+        Welcome to DailySpark
+      </Animated.Text>
+
+      {/* Subtitle */}
+      <Animated.Text
+        entering={FadeInUp.springify().delay(800)}
+        style={styles.subtitle}
+      >
+        Build daily habits, complete fun challenges, and stay consistent with
+        your streaks.
+      </Animated.Text>
+
+      {/* Button */}
+      <Animated.View entering={FadeInUp.springify().delay(1000)}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.replace("/")}
+        >
+          <Text style={styles.buttonText}>Get Started</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
@@ -33,24 +61,50 @@ export default function Onboarding() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 30,
+    paddingTop: 80,
     backgroundColor: colors.light.background,
   },
-  logo: { width: 320, height: 120, marginBottom: 30 },
-  title: { ...typography.title, marginBottom: 10 },
+  logo: {
+    width: 200,
+    height: 80,
+    marginBottom: 10,
+  },
+  hero: {
+    width: 300,
+    height: 260,
+    marginVertical: 25,
+  },
+  title: {
+    ...typography.title,
+    textAlign: "center",
+    marginTop: 10,
+    marginBottom: 6,
+    fontSize: 28,
+  },
   subtitle: {
     ...typography.body,
     textAlign: "center",
-    color: "#666",
-    marginBottom: 30,
+    color: "#6F6F6F",
+    fontSize: 16,
+    paddingHorizontal: 20,
+    marginBottom: 40,
+    lineHeight: 22,
   },
   button: {
     backgroundColor: colors.light.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 50,
-    borderRadius: 30,
+    paddingVertical: 15,
+    paddingHorizontal: 60,
+    borderRadius: 35,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  buttonText: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "700",
+  },
 });

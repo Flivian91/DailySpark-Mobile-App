@@ -1,15 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import challenges from "../data/challenges.json";
 
-import challengesData from "../data/challenges.json";
-
 export function getChallengeList() {
   // Transform the object into an array with category
-  return Object.keys(challengesData).flatMap(category =>
-    challengesData[category].map((challenge, idx) => ({
+  return Object.keys(challenges).flatMap((category) =>
+    challenges[category].map((challenge, idx) => ({
       id: `${category}-${idx}`,
       category,
-      text: challenge
+      text: challenge,
     }))
   );
 }
